@@ -14,9 +14,23 @@ const TARGET_LEAGUES=[
   253, //MSL
   135, //Serie A
   61, //Ligue 1
-  2,  //UEFA Campions League
+  2,  //UEFA Champions League
   3   //UEFA Europa League
 ];
+
+const STATUS_MAP = {
+  NS:   'Not Started',
+  '1H': 'First Half',
+  HT:   'Half Time',
+  '2H': 'Second Half',
+  ET:   'Extra Time',
+  PEN:  'Penalties',
+  FT:   'Full Time',
+  AET:  'After Extra Time',
+  ABD:  'Abandoned',
+  PST:  'Postponed',
+  CANC: 'Cancelled'
+};
 
 const today=new Date().toISOString().split('T')[0];
 
@@ -38,22 +52,18 @@ async function fetchMatches() {
             return '<p style="font-family: Arial; color: #666;">No matches scheduled globally for today.</p>';
         }
 
-        // Filter fixtures to only include leagues matching our tracking array
         const leagueMatches = data.response.filter(item => TARGET_LEAGUES.includes(item.league.id));
 
         if (leagueMatches.length === 0) {
             return '<p style="font-family: Arial; color: #666;">No matches scheduled for today in your tracked leagues.</p>';
         }
 
-        // Sort matches by league name for clean presentation
         leagueMatches.sort((a, b) => a.league.name.localeCompare(b.league.name));
 
-        // Build the HTML content output
         let htmlTableContent = '';
         let currentLeagueId = null;
 
         leagueMatches.forEach(item => {
-            // Add a clean section header whenever the league changes
             if (item.league.id !== currentLeagueId) {
                 currentLeagueId = item.league.id;
                 htmlTableContent += `
@@ -67,11 +77,9 @@ async function fetchMatches() {
 
             const homeTeam = item.teams.home.name;
             const awayTeam = item.teams.away.name;
-            const status = item.fixture.status.short; // Short code (FT, HT, NS, etc.)
-            
-            // Format match time from UTC to a clean hours/minutes notation
-            const matchTime = new Date(item.fixture.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
+            const statusCode = item.fixture.status.short;
+            const statusFull = STATUS_MAP[statusCode] || statusCode;
+            const matchTime = new Date(item.fixture.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
             const homeScore = item.goals.home !== null ? item.goals.home : '-';
             const awayScore = item.goals.away !== null ? item.goals.away : '-';
 
@@ -81,7 +89,7 @@ async function fetchMatches() {
                     <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: right; width: 30%;"><b>${homeTeam}</b></td>
                     <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: center; width: 15%; background-color: #fafafa; font-weight: bold; color: #333;">${homeScore} - ${awayScore}</td>
                     <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: left; width: 30%;"><b>${awayTeam}</b></td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.85em; color: #777; width: 10%; text-align: center;">${status}</td>
+                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.85em; color: #777; width: 10%; text-align: center;">${statusFull}</td>
                 </tr>
             `;
         });
@@ -90,7 +98,7 @@ async function fetchMatches() {
             <table style="width: 100%; border-collapse: collapse; max-width: 650px; margin: 0 auto; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
                 <thead>
                     <tr style="background-color: #2e7d32; color: white; font-family: Arial, sans-serif; font-size: 0.95em;">
-                        <th style="padding: 12px 10px; text-align: left;">Time</th>
+                        <th style="padding: 12px 10px; text-align: left;">Time (IST)</th>
                         <th style="padding: 12px 10px; text-align: right;">Home Team</th>
                         <th style="padding: 12px 10px; text-align: center;">Score</th>
                         <th style="padding: 12px 10px; text-align: left;">Away Team</th>
@@ -157,4 +165,3 @@ async function main() {
 }
 
 main();
-
