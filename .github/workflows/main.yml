@@ -13,8 +13,7 @@ jobs:
       - name: Setup Node.js Environment
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: '22'
       - name: Install Dependencies
         run: |
           if [ -f package.json ]; then
