@@ -11,11 +11,11 @@ const TARGET_LEAGUES=[
   140, // La Liga
   78,  //Bundesliga
   307, //Saudi Pro League
-  253, //MSL
+  253, //MLS
   135, //Serie A
-  61, //Ligue 1
-  2,  //UEFA Champions League
-  3   //UEFA Europa League
+  61,  //Ligue 1
+  2,   //UEFA Champions League
+  3    //UEFA Europa League
 ];
 
 const STATUS_MAP = {
@@ -68,8 +68,16 @@ async function fetchMatches() {
                 currentLeagueId = item.league.id;
                 htmlTableContent += `
                     <tr>
-                        <td colspan="5" style="padding: 15px 10px 5px 10px; font-family: Arial, sans-serif; font-size: 1.1em; color: #1e7e34; border-bottom: 2px solid #1e7e34; font-weight: bold; background-color: #f4fbf6;">
-                            ⚽ ${item.league.name} (${item.league.country})
+                        <td colspan="5" style="padding: 15px 10px 5px 10px; background-color: #f4fbf6; border-bottom: 2px solid #1e7e34;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="${item.league.logo}" alt="${item.league.name}" style="width: 28px; height: 28px; object-fit: contain;">
+                                <span style="font-family: Arial, sans-serif; font-size: 1.1em; color: #1e7e34; font-weight: bold;">
+                                    ${item.league.name} (${item.league.country})
+                                </span>
+                                <span style="font-family: Arial, sans-serif; font-size: 0.85em; color: #888; margin-left: auto;">
+                                    ${item.league.round || ''}
+                                </span>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -77,19 +85,51 @@ async function fetchMatches() {
 
             const homeTeam = item.teams.home.name;
             const awayTeam = item.teams.away.name;
+            const homeLogo = item.teams.home.logo;
+            const awayLogo = item.teams.away.logo;
             const statusCode = item.fixture.status.short;
             const statusFull = STATUS_MAP[statusCode] || statusCode;
             const matchTime = new Date(item.fixture.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
             const homeScore = item.goals.home !== null ? item.goals.home : '-';
             const awayScore = item.goals.away !== null ? item.goals.away : '-';
+            const venue = item.fixture.venue.name ? `🏟️ ${item.fixture.venue.name}, ${item.fixture.venue.city}` : '';
+            const referee = item.fixture.referee ? `👤 ${item.fixture.referee}` : '';
 
             htmlTableContent += `
                 <tr>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; color: #555; width: 15%;">${matchTime}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: right; width: 30%;"><b>${homeTeam}</b></td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: center; width: 15%; background-color: #fafafa; font-weight: bold; color: #333;">${homeScore} - ${awayScore}</td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: left; width: 30%;"><b>${awayTeam}</b></td>
-                    <td style="padding: 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.85em; color: #777; width: 10%; text-align: center;">${statusFull}</td>
+                    <td colspan="5" style="padding: 0;">
+                        <table style="width: 100%; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; color: #555; width: 12%; vertical-align: middle;">
+                                    ${matchTime}
+                                </td>
+                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: right; width: 32%; vertical-align: middle;">
+                                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                                        <b>${homeTeam}</b>
+                                        <img src="${homeLogo}" alt="${homeTeam}" style="width: 24px; height: 24px; object-fit: contain;">
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 1em; text-align: center; width: 12%; background-color: #fafafa; font-weight: bold; color: #333; vertical-align: middle;">
+                                    ${homeScore} - ${awayScore}
+                                </td>
+                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: left; width: 32%; vertical-align: middle;">
+                                    <div style="display: flex; align-items: center; gap: 8px;">
+                                        <img src="${awayLogo}" alt="${awayTeam}" style="width: 24px; height: 24px; object-fit: contain;">
+                                        <b>${awayTeam}</b>
+                                    </div>
+                                </td>
+                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.85em; color: #777; width: 12%; text-align: center; vertical-align: middle;">
+                                    ${statusFull}
+                                </td>
+                            </tr>
+                            ${venue || referee ? `
+                            <tr>
+                                <td colspan="5" style="padding: 4px 10px 10px 10px; font-family: Arial, sans-serif; font-size: 0.8em; color: #aaa; border-bottom: 1px solid #f0f0f0;">
+                                    ${venue}${venue && referee ? '&nbsp;&nbsp;|&nbsp;&nbsp;' : ''}${referee}
+                                </td>
+                            </tr>` : ''}
+                        </table>
+                    </td>
                 </tr>
             `;
         });
