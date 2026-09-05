@@ -60,26 +60,22 @@ async function fetchMatches() {
 
         leagueMatches.sort((a, b) => a.league.name.localeCompare(b.league.name));
 
-        let htmlTableContent = '';
+        let htmlCards = '';
         let currentLeagueId = null;
 
         leagueMatches.forEach(item => {
             if (item.league.id !== currentLeagueId) {
                 currentLeagueId = item.league.id;
-                htmlTableContent += `
-                    <tr>
-                        <td colspan="5" style="padding: 15px 10px 5px 10px; background-color: #f4fbf6; border-bottom: 2px solid #1e7e34;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <img src="${item.league.logo}" alt="${item.league.name}" style="width: 28px; height: 28px; object-fit: contain;">
-                                <span style="font-family: Arial, sans-serif; font-size: 1.1em; color: #1e7e34; font-weight: bold;">
-                                    ${item.league.name} (${item.league.country})
-                                </span>
-                                <span style="font-family: Arial, sans-serif; font-size: 0.85em; color: #888; margin-left: auto;">
-                                    ${item.league.round || ''}
-                                </span>
-                            </div>
-                        </td>
-                    </tr>
+                htmlCards += `
+                    <div style="margin: 20px 0 8px 0; padding: 10px 14px; background-color: #f4fbf6; border-left: 4px solid #2e7d32; border-radius: 4px; display: flex; align-items: center; gap: 10px;">
+                        <img src="${item.league.logo}" alt="" style="width: 24px; height: 24px; object-fit: contain; vertical-align: middle;">
+                        <span style="font-family: Arial, sans-serif; font-size: 1em; font-weight: bold; color: #1e7e34; vertical-align: middle;">
+                            ${item.league.name}
+                        </span>
+                        <span style="font-family: Arial, sans-serif; font-size: 0.8em; color: #888; margin-left: auto; vertical-align: middle;">
+                            ${item.league.round || ''}
+                        </span>
+                    </div>
                 `;
             }
 
@@ -92,64 +88,63 @@ async function fetchMatches() {
             const matchTime = new Date(item.fixture.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
             const homeScore = item.goals.home !== null ? item.goals.home : '-';
             const awayScore = item.goals.away !== null ? item.goals.away : '-';
-            const venue = item.fixture.venue.name ? `🏟️ ${item.fixture.venue.name}, ${item.fixture.venue.city}` : '';
+            const venue = item.fixture.venue.name ? `🏟️ ${item.fixture.venue.name}` : '';
             const referee = item.fixture.referee ? `👤 ${item.fixture.referee}` : '';
 
-            htmlTableContent += `
-                <tr>
-                    <td colspan="5" style="padding: 0;">
-                        <table style="width: 100%; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; color: #555; width: 12%; vertical-align: middle;">
-                                    ${matchTime}
-                                </td>
-                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: right; width: 32%; vertical-align: middle;">
-                                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
-                                        <b>${homeTeam}</b>
-                                        <img src="${homeLogo}" alt="${homeTeam}" style="width: 24px; height: 24px; object-fit: contain;">
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 1em; text-align: center; width: 12%; background-color: #fafafa; font-weight: bold; color: #333; vertical-align: middle;">
-                                    ${homeScore} - ${awayScore}
-                                </td>
-                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.95em; text-align: left; width: 32%; vertical-align: middle;">
-                                    <div style="display: flex; align-items: center; gap: 8px;">
-                                        <img src="${awayLogo}" alt="${awayTeam}" style="width: 24px; height: 24px; object-fit: contain;">
-                                        <b>${awayTeam}</b>
-                                    </div>
-                                </td>
-                                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; font-family: Arial, sans-serif; font-size: 0.85em; color: #777; width: 12%; text-align: center; vertical-align: middle;">
-                                    ${statusFull}
-                                </td>
-                            </tr>
-                            ${venue || referee ? `
-                            <tr>
-                                <td colspan="5" style="padding: 4px 10px 10px 10px; font-family: Arial, sans-serif; font-size: 0.8em; color: #aaa; border-bottom: 1px solid #f0f0f0;">
-                                    ${venue}${venue && referee ? '&nbsp;&nbsp;|&nbsp;&nbsp;' : ''}${referee}
-                                </td>
-                            </tr>` : ''}
-                        </table>
-                    </td>
-                </tr>
+            // Status color
+            let statusColor = '#888';
+            if (['1H','2H','ET','PEN'].includes(statusCode)) statusColor = '#e65100'; // live = orange
+            if (statusCode === 'FT' || statusCode === 'AET') statusColor = '#2e7d32'; // finished = green
+            if (['PST','CANC','ABD'].includes(statusCode)) statusColor = '#c62828'; // cancelled = red
+
+            htmlCards += `
+                <div style="background: #ffffff; border: 1px solid #e8e8e8; border-radius: 8px; margin-bottom: 8px; overflow: hidden;">
+                    
+                    <!-- Match row -->
+                    <div style="padding: 12px 14px;">
+                        
+                        <!-- Time + Status row -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <span style="font-family: Arial, sans-serif; font-size: 0.85em; color: #555; font-weight: bold;">${matchTime} IST</span>
+                            <span style="font-family: Arial, sans-serif; font-size: 0.78em; color: ${statusColor}; font-weight: bold; background: ${statusColor}18; padding: 2px 8px; border-radius: 10px;">${statusFull}</span>
+                        </div>
+
+                        <!-- Teams + Score row -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            
+                            <!-- Home team -->
+                            <div style="flex: 1; text-align: center;">
+                                <img src="${homeLogo}" alt="${homeTeam}" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto 4px auto;">
+                                <span style="font-family: Arial, sans-serif; font-size: 0.82em; color: #222; font-weight: bold; display: block; line-height: 1.2;">${homeTeam}</span>
+                            </div>
+
+                            <!-- Score -->
+                            <div style="text-align: center; min-width: 60px;">
+                                <span style="font-family: Arial, sans-serif; font-size: 1.3em; font-weight: bold; color: #333;">${homeScore} - ${awayScore}</span>
+                            </div>
+
+                            <!-- Away team -->
+                            <div style="flex: 1; text-align: center;">
+                                <img src="${awayLogo}" alt="${awayTeam}" style="width: 36px; height: 36px; object-fit: contain; display: block; margin: 0 auto 4px auto;">
+                                <span style="font-family: Arial, sans-serif; font-size: 0.82em; color: #222; font-weight: bold; display: block; line-height: 1.2;">${awayTeam}</span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Venue + Referee footer -->
+                    ${venue || referee ? `
+                    <div style="padding: 6px 14px; background: #fafafa; border-top: 1px solid #f0f0f0;">
+                        <span style="font-family: Arial, sans-serif; font-size: 0.75em; color: #aaa;">
+                            ${venue}${venue && referee ? '&nbsp;&nbsp;|&nbsp;&nbsp;' : ''}${referee}
+                        </span>
+                    </div>` : ''}
+
+                </div>
             `;
         });
 
-        return `
-            <table style="width: 100%; border-collapse: collapse; max-width: 650px; margin: 0 auto; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
-                <thead>
-                    <tr style="background-color: #2e7d32; color: white; font-family: Arial, sans-serif; font-size: 0.95em;">
-                        <th style="padding: 12px 10px; text-align: left;">Time (IST)</th>
-                        <th style="padding: 12px 10px; text-align: right;">Home Team</th>
-                        <th style="padding: 12px 10px; text-align: center;">Score</th>
-                        <th style="padding: 12px 10px; text-align: left;">Away Team</th>
-                        <th style="padding: 12px 10px; text-align: center;">Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${htmlTableContent}
-                </tbody>
-            </table>
-        `;
+        return htmlCards;
 
     } catch (error) {
         console.error('Error fetching data from Football API:', error);
@@ -171,17 +166,34 @@ async function sendEmail(htmlContent) {
         to: receiverEmail,
         subject: `🏆 Tracked Football Matches - ${today}`,
         html: `
-            <div style="background-color: #f8f9fa; padding: 20px; font-family: Arial, sans-serif;">
-                <div style="max-width: 650px; margin: 0 auto; background: white; padding: 25px; border-radius: 8px; border-top: 5px solid #2e7d32;">
-                    <h2 style="color: #333; margin-top: 0; font-family: Arial, sans-serif;">Your Daily Football Hub</h2>
-                    <p style="color: #666; font-size: 1em;">Here is the agenda for your selected domestic and elite continental leagues today:</p>
-                    <br>
-                    ${htmlContent}
-                    <br>
-                    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-                    <p style="font-size: 0.8em; color: #aaa; text-align: center; margin: 0;">Automated pipeline run powered by GitHub Actions engine.</p>
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    body { margin: 0; padding: 0; background-color: #f8f9fa; }
+                    .wrapper { max-width: 600px; margin: 0 auto; padding: 16px; }
+                    .header { background: #2e7d32; border-radius: 8px 8px 0 0; padding: 20px; }
+                    .body { background: white; padding: 16px; border-radius: 0 0 8px 8px; }
+                    .footer { text-align: center; padding: 16px; font-family: Arial, sans-serif; font-size: 0.75em; color: #aaa; }
+                </style>
+            </head>
+            <body>
+                <div class="wrapper">
+                    <div class="header">
+                        <h2 style="color: white; margin: 0; font-family: Arial, sans-serif; font-size: 1.2em;">⚽ Your Daily Football Hub</h2>
+                        <p style="color: #a5d6a7; margin: 6px 0 0 0; font-family: Arial, sans-serif; font-size: 0.85em;">Fixtures for ${new Date().toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Kolkata' })}</p>
+                    </div>
+                    <div class="body">
+                        ${htmlContent}
+                    </div>
+                    <div class="footer">
+                        Automated pipeline run powered by GitHub Actions
+                    </div>
                 </div>
-            </div>
+            </body>
+            </html>
         `
     };
 
