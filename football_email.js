@@ -33,6 +33,7 @@ const STATUS_MAP = {
 };
 
 const today=new Date().toISOString().split('T')[0];
+console.log({today});
 
 async function fetchMatches() {
     const url = `https://v3.football.api-sports.io/fixtures?date=${today}`;
@@ -47,6 +48,7 @@ async function fetchMatches() {
         });
 
         const data = await response.json();
+        console.log({data});
         
         if (!data.response || data.response.length === 0) {
             return '<p style="font-family: Arial; color: #666;">No matches scheduled globally for today.</p>';
